@@ -174,8 +174,8 @@
 				<el-col :span="HIDE_PRINT_REPORT ? 24 : 12">
 					<button
 						class="my-big-btn"
-						@keydown.enter="showManualOpenForm = true"
-						@click="showManualOpenForm = true"
+						@keydown.enter="openGate()"
+						@click="openGate()"
 					>
 						[F11] BUKA GATE MANUAL
 					</button>
@@ -191,12 +191,6 @@
 				class="mx-auto mb-1 border"
 			/>
 		</div>
-
-		<FormBukaManual
-			:show="showManualOpenForm"
-			@close="showManualOpenForm = false"
-			@open-gate="(gate_out_id) => openGate(gate_out_id)"
-		/>
 
 		<el-dialog
 			center
@@ -218,10 +212,8 @@
 <script>
 import moment from "moment";
 import { mapState } from "vuex";
-import FormBukaManual from "../components/FormBukaManual";
 
 export default {
-	components: { FormBukaManual },
 	computed: {
 		totalBayar() {
 			return Number(this.formModel.tarif) + Number(this.formModel.denda);
@@ -712,9 +704,15 @@ export default {
 			}
 		},
 
-		openGate(gate_out_id) {
-			const pos = this.posList.find(p => p.id == this.formModel.pos_id);
-			const gate = this.gateOutList.find(g => g.id == gate_out_id);
+    openGate(gate_out_id) {
+      const pos = this.posList.find(p => p.id == this.formModel.pos_id);
+      let gate;
+
+      if (gate_out_id) {
+        gate = this.gateOutList.find(g => g.id == gate_out_id);
+      } else {
+        gate = this.gateOutList.find(g => g.pos_id == this.formModel.pos_id)
+      }
 
 			const ws = new WebSocket(`ws://${pos.ip_address}:5678/`);
 
@@ -980,7 +978,7 @@ export default {
 
 			if (e.key == "F11") {
 				e.preventDefault();
-				this.showManualOpenForm = true;
+				this.openGate()
 			}
 
 			if (e.key == "F12") {
